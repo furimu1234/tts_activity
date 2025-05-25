@@ -1,0 +1,21 @@
+{
+  "name": "server",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@tts/db": "workspace:*",
+    "@tts/serverschema": "workspace:*",
+    "hono": "^4.7.9",
+    "ws": "^8.18.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.17",
+    "@types/ws": "^8.18.1",
+    "tsx": "^4.7.1",
+    "typescript": "^5.8.3"
+  }
+}

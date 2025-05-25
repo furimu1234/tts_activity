@@ -1,0 +1,21 @@
+{
+  "name": "@tts/db",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "localGenerate": "dotenv -e ../../.env -- drizzle-kit generate",
+    "migrate": "dotenv -e ../../.env -- drizzle-kit migrate",
+    "drizzle": "dotenv -e ../../.env -- drizzle-kit"
+  },
+  "devDependencies": {
+    "tsm": "^2.2.1",
+    "typescript": "~5.8.0"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.6.0",
+    "pg": "^8.15.5",
+    "prisma": "^6.6.0"
+  }
+}

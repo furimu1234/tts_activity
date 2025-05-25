@@ -1,0 +1,5 @@
+.message-box-container {
+	height: 500px; /* スクロール領域の高さを指定 */
+	overflow-y: auto; /* 縦方向にスクロール可能にする */
+	padding: 10px;
+}

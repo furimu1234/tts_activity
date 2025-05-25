@@ -1,0 +1,29 @@
+.message-box {
+	display: flex;
+	align-items: center;
+	background-color: #2d2d2d; /* dark background color */
+	padding: 10px;
+	border-radius: 8px;
+	margin-bottom: 10px;
+}
+
+.avatar {
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	margin-right: 10px;
+}
+
+.message-content {
+	color: #fff;
+}
+
+.username {
+	font-weight: bold;
+	font-size: 14px;
+	margin-right: 5px;
+}
+
+.message {
+	font-size: 14px;
+}
