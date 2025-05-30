@@ -10,7 +10,9 @@
         "biomejs.biome",
         //"ms-vscode.vscode-typescript-next",
         "ms-azuretools.vscode-docker",
-        "cweijan.vscode-myssql-client2"
+        "cweijan.vscode-myssql-client2",
+        "Reuben.root-bear",
+        "PKief.material-icon-theme"
       ]
     }
   }

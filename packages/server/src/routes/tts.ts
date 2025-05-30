@@ -9,14 +9,14 @@ import {
 	updateVoiceSetting,
 } from '@tts/db';
 import {
-	type UserDataSchema,
-	patchTtsSettingsInputSchema,
-	ttsSettingsInputSchema,
-	ttsTransformMessageInputSchema,
-} from '@tts/serverschema/src/schemaTypes';
+	type UserDataWithTtsResponseSchema,
+	type WavDataWithUserIdResponseSchema,
+	getTtsSettingsBodySchema,
+	patchTtsSettingsBodySchema,
+	ttsTransformMessageBodySchema,
+} from '@tts/serverschema';
 import { Hono } from 'hono';
 import { env } from 'hono/adapter';
-import { logger } from 'hono/logger';
 import { dataStoreContainer } from '../container';
 import type { Env } from '../types';
 import { makeVoiceBinFromMessage } from '../utils/tts';
@@ -26,41 +26,49 @@ import { websocket } from '../websocket';
 const app = new Hono<{
 	Bindings: Env;
 }>();
-app.use('*', logger());
 app.onError((err, c) => {
 	console.error('❌ onError:', err);
 	return c.json({ message: err.message }, 500);
 });
 
-dataStoreContainer;
+/**読み上げメッセージ転送
+ * channelIdにいるメンバーのメッセージ送信者の読み上げ設定を取得してwebsocketで画面に送信
+ *
+ */
 app.post(
 	'/transform-message',
-	zValidator('json', ttsTransformMessageInputSchema, (result, c) => {
-		console.log(result);
-	}),
+	zValidator('json', ttsTransformMessageBodySchema, (result, c) => {}),
 	async (c) => {
 		const { VOICE_TEXT_WEB_API, BASE_URL } = env(c);
 
 		const body = await c.req.valid('json');
 
 		const store = dataStoreContainer.getDataStore(c);
-		const voiceBinary = await store.do(async (db) => {
-			const voiceBinary = await makeVoiceBinFromMessage(
+		const voiceDatas = await store.do(async (db) => {
+			const voiceData = await makeVoiceBinFromMessage(
 				db,
 				body,
 				VOICE_TEXT_WEB_API,
 				BASE_URL,
 			);
 
-			if (!voiceBinary) {
+			if (!voiceData) {
 				throw new Error('voiceBinaryが見つかりませんでした');
 			}
-			return voiceBinary;
+			return voiceData;
 		});
 
-		const voiceBase64 = Buffer.from(voiceBinary).toString('base64');
+		body.wavDatas = voiceDatas
+			.map((x) => {
+				if (!x.voiceData) return;
+				if (!x.voiceData.byteArray) return;
 
-		body.wavData = voiceBase64;
+				return {
+					wavData: Buffer.from(x.voiceData.byteArray).toString('base64'),
+					userId: x.userId,
+				} satisfies WavDataWithUserIdResponseSchema;
+			})
+			.filter((x) => !!x);
 
 		const channelId = body.channel_id;
 		for (const clientId in websocket.clients) {
@@ -72,9 +80,12 @@ app.post(
 	},
 );
 
+/**読み上げ設定取得
+ * 設定画面を開いた人の読み上げ設定と同じVCにいる人の設定を取得
+ */
 app.post(
 	'/getVoiceSetting',
-	zValidator('json', ttsSettingsInputSchema, async (result, c) => {
+	zValidator('json', getTtsSettingsBodySchema, async (result, c) => {
 		if (!result.success) {
 			console.error('failed zod parse: ', result.error.issues);
 		}
@@ -86,14 +97,14 @@ app.post(
 
 		const store = dataStoreContainer.getDataStore(c);
 		const voiceSettings = await store.do(async (db) => {
-			const subDatas: UserDataSchema[] = [];
+			const subDatas: UserDataWithTtsResponseSchema[] = [];
 
 			let mainUserVoiceSetting = await getVoiceSetting(db, mainUserId);
 
 			if (!mainUserVoiceSetting) {
 				mainUserVoiceSetting = await createVoiceSetting(db, mainUserId);
 			}
-
+			//一緒のVCに入ってるメンバーをDBに登録
 			const errorMessage = await registerMembers(channelId);
 			if (errorMessage !== undefined) {
 				return c.json(
@@ -114,14 +125,16 @@ app.post(
 				);
 			}
 
+			//画面を開いてるユーザ情報を取得
 			const memberInfo =
 				voiceChannelMembers.memberInfos[mainUserVoiceSetting.userId];
 
 			const mainUserData = {
 				ttsData: mainUserVoiceSetting,
 				userInfo: memberInfo,
-			} satisfies UserDataSchema;
+			} satisfies UserDataWithTtsResponseSchema;
 
+			//サブデータ取得
 			for (const memberId of Object.keys(voiceChannelMembers.memberInfos)) {
 				if (memberId === mainUserId) continue;
 
@@ -132,6 +145,7 @@ app.post(
 				);
 
 				if (!subVoiceSetting) {
+					//対象ユーザの読み上げ設定をサブデータにコピーする
 					let userVoiceSetting = await getVoiceSetting(db, memberId);
 					if (!userVoiceSetting) {
 						userVoiceSetting = await createVoiceSetting(db, memberId);
@@ -146,13 +160,13 @@ app.post(
 						);
 					}
 				}
-
+				//ユーザの情報を取得
 				const memberInfo = voiceChannelMembers.memberInfos[memberId];
-
+				//サブデータ
 				const subUserData = {
 					ttsData: subVoiceSetting,
 					userInfo: memberInfo,
-				} satisfies UserDataSchema;
+				} satisfies UserDataWithTtsResponseSchema;
 				subDatas.push(subUserData);
 			}
 
@@ -163,10 +177,13 @@ app.post(
 	},
 );
 
-export default app;
+/**
+ * 読み上げ設定更新
+ * 画面を開いた人の指定したユーザの読み上げ設定を更新する
+ */
 app.patch(
 	'/patch_voice_setting',
-	zValidator('json', patchTtsSettingsInputSchema, async (result, c) => {
+	zValidator('json', patchTtsSettingsBodySchema, async (result, c) => {
 		if (!result.success) {
 			console.error('failed zod parse: ', result.error.issues);
 		}
@@ -214,3 +231,4 @@ app.patch(
 		return c.json({ message: 'OK' }, 200);
 	},
 );
+export default app;

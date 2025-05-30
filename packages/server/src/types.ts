@@ -10,6 +10,7 @@ export type Env = {
 export interface MessageType {
 	message: string;
 	author_name: string;
+	memberIds: string[];
 	author_avatar_url: string;
 	author_id: string;
 	channel_id: string;

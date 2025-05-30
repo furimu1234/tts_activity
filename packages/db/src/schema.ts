@@ -6,6 +6,7 @@ import {
 	jsonb,
 	pgSchema,
 	serial,
+	text,
 	timestamp,
 	varchar,
 } from 'drizzle-orm/pg-core';
@@ -66,6 +67,38 @@ export const voiceChannelMembers = dbSchema.table(
 	(table) => [index('channel_idx').on(table.channelId, table.channelId)],
 );
 
+export const dictionary = dbSchema.table('dictionary', {
+	id: serial('id').primaryKey(),
+	parentId: varchar('parent_id', { length: 19 }).notNull(),
+	createrId: varchar('creater_id', { length: 19 }).notNull(),
+	beforeWord: text('before_word').notNull(),
+	afterWord: text('after_word').notNull(),
+	createdAt: timestamp('created_at').defaultNow(),
+	updatedAt: timestamp('updated_at')
+		.defaultNow()
+		.$onUpdate(() => new Date()),
+});
+
+//TOOD: global辞書で有効状況を個人で持たないといけない
+
+export const dictionaryEnable = dbSchema.table('dictionary_enable', {
+	id: serial('id').primaryKey(),
+	userId: varchar('user_id', { length: 19 }).notNull(),
+	dictionaryId: integer('dictionary_id').notNull(),
+	disabled: boolean().notNull(),
+	createdAt: timestamp('created_at').defaultNow(),
+	updatedAt: timestamp('updated_at')
+		.defaultNow()
+		.$onUpdate(() => new Date()),
+});
+
+export const userInfo = dbSchema.table('userInfo', {
+	userId: varchar('user_id', { length: 19 }).notNull().unique(),
+	userAvatarUrl: text('user_avatar_url').notNull(),
+	userDisplayName: text('user_display_name').notNull(),
+	textLength: integer('text_length').notNull(),
+});
+
 export const creatorRelations = relations(voicePreference, ({ many }) => ({
 	usersVoicePreference: many(usersVoicePreference),
 }));
@@ -73,5 +106,17 @@ export const usersRelations = relations(usersVoicePreference, ({ one }) => ({
 	parentId: one(voicePreference, {
 		fields: [usersVoicePreference.parentId],
 		references: [voicePreference.userId],
+	}),
+}));
+
+export const userInfoRelations = relations(userInfo, ({ many }) => ({
+	dictionaries: many(dictionary),
+}));
+
+export const dictionaryRelations = relations(dictionary, ({ one }) => ({
+	creator: one(userInfo, {
+		relationName: 'userDictionaries',
+		fields: [dictionary.parentId],
+		references: [userInfo.userId],
 	}),
 }));

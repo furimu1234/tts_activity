@@ -1,6 +1,9 @@
 import type { emotion, speaker } from '@tts/db';
 
 export * from './schemaTypes';
+export * from './user';
+export * from './tts';
+export * from './dictionary';
 
 type speakerToJpReacord = Record<speaker, string>;
 type speakerToEnReacord = Record<string, speaker>;

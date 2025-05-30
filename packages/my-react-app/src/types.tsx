@@ -1,7 +1,13 @@
 import type { CommandResponse } from '@discord/embedded-app-sdk';
 
-export interface memberVoiceWebSocketData {
+export interface wavData {
+	userId: string;
 	wavData: string;
+}
+
+export interface memberVoiceWebSocketData {
+	wavDatas: wavData[];
+	memberIds: string[];
 	message: string;
 	author_name: string;
 	author_avatar_url: string;

@@ -1,6 +1,7 @@
-import type { Types } from '@discord/embedded-app-sdk';
-import { discordSdk } from '../discord';
+import { DiscordSDK, type Types } from '@discord/embedded-app-sdk';
 import { authStore } from '../store/authStore';
+
+export const discordSdk = new DiscordSDK(import.meta.env.VITE_CLIENT_ID);
 
 export const start = async () => {
 	const { user } = authStore.getState();
@@ -57,11 +58,25 @@ export const start = async () => {
 		}),
 	});
 
-	const { access_token } = await response.json();
+	if (!response.ok) {
+		console.log('token response failed!!!!!!!!!');
+		return;
+	}
 
-	const authResponse = await discordSdk.commands.authenticate({
-		access_token,
-	});
+	const { access_token } = await response.json();
+	let authResponse:
+		| Awaited<ReturnType<typeof discordSdk.commands.authenticate>>
+		| undefined = undefined;
+
+	try {
+		authResponse = await discordSdk.commands.authenticate({
+			access_token,
+		});
+	} catch {}
+
+	if (!authResponse) {
+		return;
+	}
 
 	// Get guild specific nickname and avatar, and fallback to user name and avatar
 	const guildMember = await fetch(

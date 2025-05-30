@@ -1,10 +1,10 @@
 import {
-	type TtsSettingsViewSchema,
+	type TtsSettingsResponseSchema,
 	ttsSettingsViewSchema,
 } from '@tts/serverschema';
 import { useCallback, useEffect, useState } from 'react';
 import { Routes } from '../Routes';
-import { discordSdk } from '../discord';
+import { discordSdk } from '../actions/authActions';
 import { authStore } from '../store/authStore';
 import type { CardData, TtsData } from './props';
 
@@ -17,7 +17,7 @@ async function getUserVoiceSettings(mainUserId: string, channelId: string) {
 		body: JSON.stringify({ mainUserId: mainUserId, channelId: channelId }),
 	});
 
-	const responseData: TtsSettingsViewSchema = await VoiceSettings.json();
+	const responseData: TtsSettingsResponseSchema = await VoiceSettings.json();
 	const _parsed = ttsSettingsViewSchema.safeParse(responseData);
 
 	if (_parsed.error) {
@@ -26,14 +26,13 @@ async function getUserVoiceSettings(mainUserId: string, channelId: string) {
 		return;
 	}
 	const parsed = _parsed.data;
-	console.log(parsed);
 
 	return { mainData: parsed.mainData, subDatas: parsed.subDatas };
 }
 
 export const useTtsSettingOperation = () => {
 	const [editingId, setEditingId] = useState<string | null>(null);
-	const [formState, setFormState] = useState<TtsData>({});
+	const [formState, setFormState] = useState<TtsData>({} as TtsData);
 
 	const authstore = authStore();
 
@@ -44,13 +43,15 @@ export const useTtsSettingOperation = () => {
 	const reload = useCallback(async () => {
 		const voiceSetting = await getUserVoiceSettings(
 			userId,
-			discordSdk.channelId,
+			discordSdk.channelId ?? '',
 		);
+
+		if (!voiceSetting) return;
 
 		const values = [voiceSetting.mainData].concat(voiceSetting.subDatas ?? []);
 		setItems(values);
 		setEditingId(null);
-		setFormState({});
+		setFormState({} as TtsData);
 	}, [userId]);
 
 	useEffect(() => {
@@ -71,7 +72,6 @@ export const useTtsSettingOperation = () => {
 
 	const save = async () => {
 		if (!editingId && !formState) return;
-		console.log(JSON.stringify(formState));
 
 		const body = {
 			...formState,

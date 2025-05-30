@@ -1,9 +1,12 @@
 import {
 	type SchemaDB,
+	createSubVoiceSetting,
 	createVoiceSetting,
 	getVoiceByte,
 	getVoiceSetting,
+	getVoiceSubSetting,
 	type usersVoicePreference,
+	type voiceByteInterface,
 	type voicePreference,
 } from '@tts/db';
 import type { InferInsertModel } from 'drizzle-orm';
@@ -14,21 +17,45 @@ export async function makeVoiceBinFromMessage(
 	data: MessageType,
 	apiKey: string,
 	baseUrl: string,
-) {
-	let voiceSetting = await getVoiceSetting(db, data.author_id);
+): Promise<{ voiceData: voiceByteInterface; userId: string }[]> {
+	const _voiceSettings = data.memberIds.map(async (x) => {
+		let parentSetting = await getVoiceSetting(db, data.author_id);
 
-	if (!voiceSetting) {
-		voiceSetting = await createVoiceSetting(db, data.author_id);
-	}
+		if (!parentSetting) {
+			parentSetting = await createVoiceSetting(db, data.author_id);
+		}
 
-	if (!voiceSetting) return undefined;
+		if (data.author_id === x) {
+			const voiceData = await getVoiceByte({
+				db,
+				apiKey: apiKey,
+				baseUrl: baseUrl,
+				text: data.message,
+				...parentSetting,
+			});
 
-	return await getVoiceByte({
-		apiKey: apiKey,
-		baseUrl: baseUrl,
-		text: data.message,
-		...voiceSetting,
+			return { voiceData, userId: x };
+		}
+
+		let voiceSetting = await getVoiceSubSetting(db, x, data.author_id);
+		if (!voiceSetting) {
+			voiceSetting = await createSubVoiceSetting(db, x, data.author_id);
+		}
+
+		if (!voiceSetting) return;
+
+		const voiceData = await getVoiceByte({
+			db,
+			apiKey: apiKey,
+			baseUrl: baseUrl,
+			text: data.message,
+			...voiceSetting,
+		});
+
+		return { voiceData, userId: x };
 	});
+
+	return (await Promise.all(_voiceSettings)).filter((x) => !!x);
 }
 
 export async function createParentData(data?: {

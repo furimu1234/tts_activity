@@ -14,7 +14,8 @@
 		"esModuleInterop": true,
 		"skipLibCheck": true,
 		"strict": true,
-		"noEmit": true
+		"noEmit": true,
+		"strictNullChecks": true
 	},
 	"include": ["*.ts", "src/index.ts", "src/schemaTypes.ts"],
 	"exclude": ["node_modules", "dist", "**/*.test.ts"]

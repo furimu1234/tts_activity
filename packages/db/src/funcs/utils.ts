@@ -1,5 +1,15 @@
 import { z } from 'zod';
-import { type emotion, emotions, type speaker, speakers } from '../';
+import {
+	type SchemaDB,
+	type dictionaryFilterWithEnable,
+	type emotion,
+	emotions,
+	getGlobalDictionaries,
+	getUserInfo,
+	type speaker,
+	speakers,
+} from '../';
+import { replace } from './replace';
 
 export function getRandomSpeaker(): speaker {
 	const randomIndex = Math.floor(Math.random() * speakers.length);
@@ -15,32 +25,60 @@ export function getRandomInRange(min: number, max: number): number {
 }
 
 interface VoiceTextParams {
+	db: SchemaDB;
 	baseUrl: string;
 	apiKey: string;
 	text: string;
+	userId: string;
 	speaker: speaker;
 	emotion?: emotion | null;
 	emotionLevel?: number | null;
 	pitch: number;
 	speed: number;
 	volume?: number;
-	authorId?: number;
+}
+
+export interface voiceByteInterface {
+	byteArray: Uint8Array | null;
+	replacedText: string;
 }
 
 export async function getVoiceByte({
+	db,
 	baseUrl,
 	apiKey,
 	text,
+	userId,
 	speaker,
 	emotion,
 	emotionLevel,
 	pitch,
 	speed,
 	volume = 100,
-	authorId,
-}: VoiceTextParams): Promise<Uint8Array | null> {
+}: VoiceTextParams): Promise<voiceByteInterface> {
+	const Replace = replace(text);
+
+	const userInfo = await getUserInfo(db, userId);
+
+	if (!userInfo) return {} as voiceByteInterface;
+
+	const globalDictionaries = (await getGlobalDictionaries(db, userId)) ?? [];
+	const userDictionaries = userInfo.dictionaries.filter(
+		(x) => x.parentId !== 'global',
+	);
+
+	const dictionaries = await ignoreDisableDictionaries(
+		globalDictionaries,
+		userDictionaries,
+	);
+
+	const replacedText = Replace.auto(
+		dictionaries.globalDictionaries,
+		dictionaries.userDictionaries,
+	);
+
 	const readParams: Record<string, string | number> = {
-		text,
+		text: replacedText,
 		speaker,
 		pitch,
 		speed,
@@ -52,7 +90,7 @@ export async function getVoiceByte({
 			console.error(
 				"Emotion and emotionLevel are required for speakers other than 'show'.",
 			);
-			return null;
+			return {} as voiceByteInterface;
 		}
 		readParams.emotion = emotion;
 		readParams.emotion_level = emotionLevel;
@@ -86,17 +124,10 @@ export async function getVoiceByte({
 		const arrayBuffer = await response.arrayBuffer();
 		const byteArray = new Uint8Array(arrayBuffer);
 
-		let logMessage = `バイトサイズ: ${byteArray.byteLength}`;
-		if (authorId !== undefined) {
-			logMessage += ` authorId=${authorId}`;
-		}
-
-		console.info(logMessage);
-
-		return byteArray;
+		return { byteArray, replacedText };
 	} catch (error) {
 		console.error('Failed to create voice byte:', error);
-		return null;
+		return {} as voiceByteInterface;
 	}
 }
 
@@ -106,3 +137,28 @@ export const zodenumFromObjKeys = <K extends string>(
 	const [firstKey, ...otherKeys] = Object.keys(obj) as K[];
 	return z.enum([firstKey, ...otherKeys]);
 };
+
+interface disableDictionariesInterface {
+	globalDictionaries: dictionaryFilterWithEnable[];
+	userDictionaries: dictionaryFilterWithEnable[];
+}
+
+/**無効化辞書を除外する */
+export async function ignoreDisableDictionaries(
+	globalDictionaries: dictionaryFilterWithEnable[],
+	userDictionaries: dictionaryFilterWithEnable[],
+	ignore = true,
+): Promise<disableDictionariesInterface> {
+	let filterdGlobal = globalDictionaries;
+	let filterdUser = userDictionaries;
+	console.log(ignore, filterdGlobal, filterdUser);
+
+	if (ignore) {
+		filterdGlobal = globalDictionaries.filter((x) => x.enable === true);
+		filterdUser = userDictionaries.filter((x) => x.enable === true);
+	}
+	return {
+		globalDictionaries: filterdGlobal,
+		userDictionaries: filterdUser,
+	};
+}

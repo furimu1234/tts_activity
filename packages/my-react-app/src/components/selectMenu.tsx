@@ -17,7 +17,7 @@ interface SelectMenuProps<T extends speaker | emotion> {
 	handleChange: (field: keyof CardData, value: string | number) => void;
 }
 
-export const SelectMenu: React.FC<SelectMenuProps> = ({
+export const SelectMenu: React.FC<SelectMenuProps<speaker | emotion>> = ({
 	id = 'select-menu',
 	label,
 	field,

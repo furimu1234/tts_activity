@@ -1,5 +1,5 @@
 {
-  "name": "my-react-app",
+  "name": "@tts/my-react-app",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "type-check": "tsc --noEmit && biome check"
   },
   "dependencies": {
     "@discord/embedded-app-sdk": "^2.0.0",

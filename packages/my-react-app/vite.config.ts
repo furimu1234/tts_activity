@@ -19,6 +19,12 @@ export default defineConfig(({ mode }) => {
 					secure: false,
 					ws: true,
 				},
+				'/botapi': {
+					target: 'http://localhost:9000',
+					changeOrigin: true,
+					secure: false,
+					ws: false,
+				},
 			},
 		},
 	};

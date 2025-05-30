@@ -1,5 +1,6 @@
 import type { InferInsertModel, InferSelectModel } from 'drizzle-orm';
 import type {
+	dictionary,
 	usersVoicePreference,
 	voiceChannelMembers,
 	voicePreference,
@@ -27,3 +28,8 @@ export interface insertUsersVoicePreferenceInterface
 	pitch: number;
 	isMuted: boolean;
 }
+
+export type dictionaryFilter = InferSelectModel<typeof dictionary>;
+export type dictionaryFilterWithEnable = InferSelectModel<typeof dictionary> & {
+	enable: boolean;
+};

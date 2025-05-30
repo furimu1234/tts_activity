@@ -1,83 +1,69 @@
-import { emotion, speaker } from '@tts/db';
 import { z } from 'zod';
+import {} from '.';
 
-export const ttsTransformMessageInputSchema = z.object({
-	message: z.string().max(19).min(1),
-	author_name: z.string().min(1),
-	author_id: z.string().max(19).min(1),
-	channel_id: z.string().max(19).min(1),
-	author_avatar_url: z.string().url({ message: 'URLを指定してください' }),
-	wavData: z.string().nullish(),
-});
+import type {
+	addDictionaryBodySchema,
+	dictionariesSchema,
+	dictionarySchema,
+	editDictionariesBodySchema,
+	getDictionariesBodySchema,
+	toggleDictionaryBodySchema,
+} from './dictionary';
+import type {
+	ttsTransformMessageBodySchema,
+	ttsWavDataWithUserIdSchema,
+} from './tts';
+import { type userDataWithTtsSchema, userDataWithTtsViewSchema } from './user';
 
-export const patchTtsSettingsInputSchema = z.object({
-	mainUserId: z.string().min(1).max(19),
-	userId: z.string().min(1).max(19),
-	speaker: speaker,
-	emotion: emotion,
-	emotionLevel: z.number().min(1).max(4),
-	pitch: z.number().min(1).max(200),
-	speed: z.number().min(1).max(400),
-});
-
-export const ttsSettingsInputSchema = z.object({
-	channelId: z.string().max(19).min(1),
-	mainUserId: z.string().max(19).min(1),
-});
-
-const ttsDataSchema = z.object({
-	id: z.number(),
-	userId: z.string().min(1).max(19),
-	speaker: speaker,
-	emotion: emotion,
-	emotionLevel: z.number().min(1).max(4),
-	pitch: z.number().min(1).max(200),
-	speed: z.number().min(1).max(400),
-	createdAt: z.date().nullable(),
-	updatedAt: z.date().nullable(),
-});
-
-const ttsDataViewSchema = z.object({
-	id: z.number(),
-	userId: z.string().min(1).max(19),
-	speaker: speaker,
-	emotion: emotion,
-	emotionLevel: z.number().min(1).max(4),
-	pitch: z.number().min(1).max(200),
-	speed: z.number().min(1).max(400),
-	createdAt: z.string().nullable(),
-	updatedAt: z.string().nullable(),
-});
-
-const userInfoSchema = z.object({
-	memberDisplayName: z.string(),
-	memberAvatarUrl: z.string().url(),
-});
-
-export const userDataSchema = z.object({
-	ttsData: ttsDataSchema,
-	userInfo: userInfoSchema,
-});
-
-export const userDataViewSchema = z.object({
-	ttsData: ttsDataViewSchema,
-	userInfo: userInfoSchema,
-});
-
-export const ttsSettingsSchema = z.object({
-	mainData: userDataSchema,
-	subDatas: userDataSchema.array(),
-});
-
+/**読み上げ設定一覧取得画面スキーマ
+ * 画面を表示してる人
+ * 同じVCにいる人
+ */
 export const ttsSettingsViewSchema = z.object({
-	mainData: userDataViewSchema,
-	subDatas: userDataViewSchema.array(),
+	mainData: userDataWithTtsViewSchema,
+	subDatas: userDataWithTtsViewSchema.array(),
 });
 
-export type UserDataSchema = z.infer<typeof userDataSchema>;
+/**辞書一覧取得画面 */
+export type DictionariesResponseSchema = z.infer<typeof dictionariesSchema>;
 
-export type TtsSettingsSchema = z.infer<typeof ttsSettingsSchema>;
-export type TtsSettingsViewSchema = z.infer<typeof ttsSettingsViewSchema>;
-export type TtsTransformMessageInputSchema = z.infer<
-	typeof ttsTransformMessageInputSchema
+/**辞書一覧取得body画面 */
+export type DictionariesRequestSchema = z.infer<
+	typeof getDictionariesBodySchema
+>;
+
+/**辞書取得画面 */
+export type DictionaryResponseSchema = z.infer<typeof dictionarySchema>;
+
+/**辞書登録画面body */
+export type AddDictionaryRequestSchema = z.infer<
+	typeof addDictionaryBodySchema
+>;
+
+/**辞書更新body */
+export type EditDictionaryRequestSchema = z.infer<
+	typeof editDictionariesBodySchema
+>;
+
+/**辞書有効状況更新body */
+export type ToggleDictionaryRequestSchema = z.infer<
+	typeof toggleDictionaryBodySchema
+>;
+
+/**読み上げ情報取得 */
+export type WavDataWithUserIdResponseSchema = z.infer<
+	typeof ttsWavDataWithUserIdSchema
+>;
+
+/**読み上げ設定とその設定を登録したユーザ情報取得 */
+export type UserDataWithTtsResponseSchema = z.infer<
+	typeof userDataWithTtsSchema
+>;
+
+/**読み上げ設定一覧取得 */
+export type TtsSettingsResponseSchema = z.infer<typeof ttsSettingsViewSchema>;
+
+/**読み上げ情報送信 */
+export type TtsTransformMessageRequestSchema = z.infer<
+	typeof ttsTransformMessageBodySchema
 >;

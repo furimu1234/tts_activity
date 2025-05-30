@@ -2,13 +2,15 @@ import { ChannelType, Client, Events, GatewayIntentBits } from 'discord.js';
 
 import { serve } from '@hono/node-server';
 import {
+	createUserInfo,
 	createVoiceChannelMembers,
+	getUserInfo,
 	getVoiceChannelMembers,
 	updateVoiceChannelMembers,
 } from '@tts/db';
 import {
-	type TtsTransformMessageInputSchema,
-	ttsTransformMessageInputSchema,
+	type TtsTransformMessageRequestSchema,
+	ttsTransformMessageBodySchema,
 } from '@tts/serverschema';
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
@@ -37,6 +39,32 @@ client.on(Events.Error, async (error) => {
 	console.error(error);
 });
 
+app.get('/botapi/check', async (c) => {
+	const { channelId } = c.req.query();
+
+	const channel = client.channels.cache.get(channelId);
+	//チャンネルタイプがステージかボイス以外はエラー
+	if (!channel)
+		throw new HTTPException(404, {
+			message: '不明なチャンネルを検知しました。再起動してみてください。',
+		});
+
+	if (channel.type !== ChannelType.GuildVoice)
+		throw new HTTPException(500, {
+			message: 'ボイスチャンネルのみで実行できます。',
+		});
+
+	const channelMembers = Array.from(channel.members.values());
+
+	if (channelMembers.length === 0) {
+		throw new HTTPException(404, {
+			message: '(自分含め)メンバーがいるVCで実行できます。',
+		});
+	}
+
+	return c.json({ message: 'OK' }, 200);
+});
+
 app.get('/register_members', async (c) => {
 	const { channelId } = c.req.query();
 
@@ -63,9 +91,18 @@ app.get('/register_members', async (c) => {
 		}
 		channelDBData.memberInfos = memberArrayTomemberInfo(channelMembers);
 
+		await Promise.all(
+			channelMembers.map(async (x) => {
+				const userInfo = await getUserInfo(db, x.id);
+
+				if (!userInfo) {
+					await createUserInfo(db, x.id, x.displayAvatarURL(), x.displayName);
+				}
+			}),
+		);
+
 		await updateVoiceChannelMembers(db, channelDBData);
 	});
-	console.log('OK');
 
 	return c.json({ message: 'OK' }, 200);
 });
@@ -87,26 +124,13 @@ client.on(Events.MessageCreate, async (message) => {
 		author_name: message.author.displayName,
 		channel_id: message.channelId,
 		message: message.content,
-	} satisfies TtsTransformMessageInputSchema;
+		memberIds: voiceChannelMembers.map((x) => x.id),
+		wavDatas: [],
+	} satisfies TtsTransformMessageRequestSchema;
 
-	const parsed = ttsTransformMessageInputSchema.safeParse(data);
+	const parsed = ttsTransformMessageBodySchema.safeParse(data);
 
 	if (parsed.error) return;
-
-	const store = dataStoreContainer.getDataStore();
-	const channelMembers = Array.from(voiceChannelMembers.values());
-
-	await store.do(async (db) => {
-		let data = await getVoiceChannelMembers(db, message.channelId);
-
-		if (!data) {
-			data = await createVoiceChannelMembers(db, message.channelId);
-		}
-
-		data.memberInfos = memberArrayTomemberInfo(channelMembers);
-		console.log(data);
-		await updateVoiceChannelMembers(db, data);
-	});
 
 	fetch('http://localhost:8787/api/transform-message', {
 		method: 'POST',

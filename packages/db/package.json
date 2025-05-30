@@ -7,7 +7,8 @@
     "build": "tsc",
     "localGenerate": "dotenv -e ../../.env -- drizzle-kit generate",
     "migrate": "dotenv -e ../../.env -- drizzle-kit migrate",
-    "drizzle": "dotenv -e ../../.env -- drizzle-kit"
+    "drizzle": "dotenv -e ../../.env -- drizzle-kit",
+    "type-check": "tsc --noEmit && biome check"
   },
   "devDependencies": {
     "tsm": "^2.2.1",

@@ -16,13 +16,8 @@ export const MakeDataStore = <TResult extends PgQueryResultHKT>(
 		f: (db: PgDatabase<TResult, DBSchema>) => Promise<T>,
 	): Promise<T> => {
 		const res = await client.transaction(async (tx) => {
-			try {
-				const result = await f(tx);
-				return result;
-			} catch (er) {
-				console.log(er);
-				tx.rollback();
-			}
+			const result = await f(tx);
+			return result;
 		});
 		return res!;
 	};

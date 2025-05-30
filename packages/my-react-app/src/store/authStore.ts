@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import type { TAuthenticatedContext } from '../types';
 
 export const authStore = create<TAuthenticatedContext>(() => ({
-	user: undefined as unknown as TAuthenticatedContext['user'],
+	user: null as unknown as TAuthenticatedContext['user'],
 	access_token: '',
 	scopes: [],
 	expires: '',

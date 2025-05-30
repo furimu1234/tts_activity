@@ -1,16 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { discordSdk } from '../discord';
+import { discordSdk } from '../actions/authActions';
 import { createVoiceBlob } from '../utils/createVoiceBlob';
 import './Tts.css';
 import { useIsMuted } from '../contexts/muted';
+import { useApi, useDialog } from '../providers';
+import { authStore } from '../store/authStore';
 //import { isMutedState } from '../atoms/muted';
 import type { WebScoketData } from '../types';
 
 export const useTtsOperation = (isPlay: boolean) => {
 	const [messageDatas, setMessageDatas] = useState<WebScoketData[]>([]);
+	const [isVc, setIsVc] = useState<boolean>(true);
 	const audioRef = useRef<HTMLAudioElement | null>(null);
 	const socketRef = useRef<WebSocket | null>(null);
 	const { isMuted } = useIsMuted();
+	const auth = authStore();
+	const api = useApi();
+	const { showError } = useDialog();
 
 	const channelBlock = useCallback((channelId: string) => {
 		return channelId !== discordSdk.channelId;
@@ -29,46 +35,76 @@ export const useTtsOperation = (isPlay: boolean) => {
 		[isPlay],
 	);
 
+	const initializeCheck = useCallback(async () => {
+		if (isPlay) {
+			const error = await api.check();
+			if (error) {
+				showError('実行エラー', error);
+				setIsVc(false);
+				return false;
+			}
+			return true;
+		}
+		return true;
+	}, [api, isPlay, showError]);
+
 	useEffect(() => {
-		// 2) WebSocket 接続
-		const socket = new WebSocket(
-			`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/.proxy/api/ws`,
-		);
-		socketRef.current = socket;
-		console.log('再接続');
+		if (!isVc) return;
 
-		socket.addEventListener('message', async (ev) => {
-			const data: WebScoketData = JSON.parse(ev.data);
+		let socket: WebSocket | undefined = undefined;
 
-			if (data.isSetClientId) {
-				console.log('接続');
-				socket.send(
-					JSON.stringify({
-						clientId: data.clientId,
-						channelId: discordSdk.channelId,
-					}),
-				);
-				return;
-			}
+		async function execute() {
+			const check = await initializeCheck();
 
-			//サーバーでフィルターしてるけど安全性のため
-			if (!channelBlock(data.channel_id)) {
-				setMessageDatas((prev) => [data, ...prev]);
+			if (!check) return;
 
-				const blob = createVoiceBlob(data.wavData);
+			socket = new WebSocket(
+				`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/.proxy/api/ws`,
+			);
+			socketRef.current = socket;
 
-				setTimeout(async () => {
-					await play(blob, isMuted);
-				}, 1000);
-			}
-		});
+			socket.addEventListener('message', async (ev) => {
+				const data: WebScoketData = JSON.parse(ev.data);
+
+				if (data.isSetClientId && socket) {
+					socket.send(
+						JSON.stringify({
+							clientId: data.clientId,
+							channelId: discordSdk.channelId,
+						}),
+					);
+					return;
+				}
+
+				//サーバーでフィルターしてるけど安全性のため
+				if (!channelBlock(data.channel_id)) {
+					setMessageDatas((prev) => [data, ...prev]);
+					setTimeout(async () => {
+						console.log(data.wavDatas);
+						await Promise.all(
+							data.wavDatas.map(async (x) => {
+								console.log(x.userId);
+								if (x.userId !== auth.user.id) return;
+
+								const blob = createVoiceBlob(x.wavData);
+
+								await play(blob, isMuted);
+							}),
+						);
+					}, 1000);
+				}
+			});
+		}
+
+		execute();
 
 		// クリーンアップ
 		return () => {
-			socket.close();
+			if (socket) socket.close();
+
 			if (audioRef.current) audioRef.current.pause();
 		};
-	}, [isMuted, play, channelBlock]);
+	}, [isMuted, play, channelBlock, auth, initializeCheck, isVc]);
 
 	return { messageDatas };
 };

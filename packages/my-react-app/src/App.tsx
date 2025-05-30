@@ -9,26 +9,34 @@ import {
 	useNavigate,
 } from 'react-router-dom';
 import * as S from './AppStyles';
+import { discordSdk } from './actions/authActions';
 import { AuthProvider } from './components/AuthProvider';
 import DesignSystemProvider from './components/DesignSystemProvider';
 import * as Scrollable from './components/Scrollable';
 import { IsMutedProvider } from './contexts/muted';
-import { discordSdk } from './discord';
+import Dictionaries from './pages/Dictionaries';
+import HelpPage from './pages/Help';
 import Tts from './pages/Tts';
 import { useTtsOperation } from './pages/TtsOperations';
 import TtsSetting from './pages/TtsSetting';
+import { DialogProvider } from './providers';
+import { ApiProvider } from './providers/APIProviders';
 
 export default function App(): React.ReactElement {
 	return (
-		<AuthProvider>
+		<DialogProvider>
 			<DesignSystemProvider>
 				<IsMutedProvider>
-					<Router>
-						<RootedApp />
-					</Router>
+					<AuthProvider>
+						<ApiProvider>
+							<Router>
+								<RootedApp />
+							</Router>
+						</ApiProvider>
+					</AuthProvider>
 				</IsMutedProvider>
 			</DesignSystemProvider>
-		</AuthProvider>
+		</DialogProvider>
 	);
 }
 
@@ -39,6 +47,11 @@ interface AppRoute {
 }
 
 const routes: Record<string, AppRoute> = {
+	help: {
+		path: '/help',
+		name: '使い方・ヘルプ',
+		component: HelpPage,
+	},
 	tts: {
 		path: '/tts',
 		name: '読み上げ',
@@ -48,6 +61,11 @@ const routes: Record<string, AppRoute> = {
 		path: '/ttsSetting',
 		name: '読み上げ設定',
 		component: TtsSetting,
+	},
+	dictionaries: {
+		path: '/dictionaries',
+		name: '辞書設定',
+		component: Dictionaries,
 	},
 };
 
@@ -71,7 +89,7 @@ function RootedApp(): React.ReactElement {
 			navigateOnInit = false;
 		} else {
 			navigateOnInit = false;
-			navigate('/ttsSetting');
+			navigate('/help');
 		}
 	}, [navigate]);
 
