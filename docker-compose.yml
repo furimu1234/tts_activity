@@ -10,6 +10,8 @@ services:
       - postgres:/var/lib/postgresql
 
   nginx:
+    env_file:
+      - .env
     build:
       context: .        # context はアプリのソースがあるディレクトリ
       dockerfile: .dockerfiles/nginx/.Dockerfile  # 
@@ -19,6 +21,8 @@ services:
       - ./nginx.conf:/etc/nginx/templates/nginx.conf.template:ro
 
   app:
+    env_file:
+      - .env
     build:
       context: .        # context はアプリのソースがあるディレクトリ
       dockerfile: .dockerfiles/app/.Dockerfile  # ← 明示的にパスを指定
