@@ -19,6 +19,9 @@ services:
       - "80:80"
     volumes:
       - ./nginx.conf:/etc/nginx/templates/nginx.conf.template:ro
+      - ./cert/server.crt:/etc/nginx/certs/server.crt
+      - ./cert/server.key:/etc/nginx/certs/server.key
+
 
   app:
     env_file:
