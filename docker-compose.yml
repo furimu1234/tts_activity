@@ -8,6 +8,8 @@ services:
       - "32581:5432"
     volumes:
       - postgres:/var/lib/postgresql
+    networks:
+      - activity
 
   nginx:
     env_file:
@@ -21,7 +23,8 @@ services:
       - ./nginx.conf:/etc/nginx/templates/nginx.conf.template:ro
       - ./cert/server.crt:/etc/nginx/certs/server.crt
       - ./cert/server.key:/etc/nginx/certs/server.key
-
+    networks:
+      - activity
 
   app:
     env_file:
@@ -33,6 +36,11 @@ services:
       - "3000:3000"
       - "8787:8787"
       - "9000:9000"    
+    networks:
+      - activity
 
 volumes:
   postgres:
+
+networks:
+  activity:
