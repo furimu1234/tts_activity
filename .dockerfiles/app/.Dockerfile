@@ -4,7 +4,7 @@ COPY ./ ./
 
 RUN corepack enable && corepack prepare pnpm@latest --activate
 ENV PNPM_SKIP_CONFIRMATIONS=true
-RUN pnpm install --frozen-lockfile --registry=https://registry.npmjs.org --config.confirmModulesPurge=false
+RUN pnpm install --registry=https://registry.npmjs.org --config.confirmModulesPurge=false
 
 # CMD ["pwd"]
 CMD ["pnpm","dev"]
