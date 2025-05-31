@@ -2,14 +2,24 @@ import { type UUID, randomUUID } from 'node:crypto';
 import { serve } from '@hono/node-server';
 import { createNodeWebSocket } from '@hono/node-ws';
 import * as dotenv from 'dotenv';
-import { Hono } from 'hono';
+import { Hono, type MiddlewareHandler } from 'hono';
 import api from './routes/api';
 import { websocket } from './websocket';
 
 // .envファイルを読み込む
 dotenv.config({ path: '../../.env' });
 
+const hostFilter: MiddlewareHandler = async (c, next) => {
+	const host = c.req.header('host') || '';
+	console.log(host);
+	if (!['localhost:8787'].includes(host)) {
+		return c.text('Forbidden', 403);
+	}
+	await next();
+};
+
 const app = new Hono();
+app.use('*', hostFilter);
 const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({ app });
 
 app.route('/api', api);
