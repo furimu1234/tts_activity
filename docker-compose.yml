@@ -12,7 +12,7 @@ services:
   nginx:
     build:
       context: .        # context はアプリのソースがあるディレクトリ
-      dockerfile: .dockerfiles/nginx/Dockerfile  # 
+      dockerfile: .dockerfiles/nginx/.Dockerfile  # 
     ports:
       - "80:80"
     volumes:
@@ -21,7 +21,7 @@ services:
   app:
     build:
       context: .        # context はアプリのソースがあるディレクトリ
-      dockerfile: .dockerfiles/app/Dockerfile  # ← 明示的にパスを指定
+      dockerfile: .dockerfiles/app/.Dockerfile  # ← 明示的にパスを指定
     ports:
       - "3000:3000"
       - "8787:8787"
