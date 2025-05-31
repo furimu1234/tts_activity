@@ -4,7 +4,6 @@ services:
       - .env
     image: postgres:15
     restart: always
-    
     ports:
       - "32581:5432"
     volumes:
@@ -24,9 +23,9 @@ services:
   build:
     context: ./app/DockerFile
   ports:
-      - "3000:3000"
-      - "8787:8787"
-      - "9000:9000"    
+    - "3000:3000"
+    - "8787:8787"
+    - "9000:9000"    
 
 volumes:
   postgres:
