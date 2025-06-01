@@ -17,6 +17,7 @@ function getEnvVariable(key: string): string {
 export const ENV = {
 	TOKEN: getEnvVariable('BOT_TOKEN'),
 	POST_URL: getEnvVariable('POST_URL'),
+	DOMAIN: getEnvVariable('DOMAIN')
 };
 
 export type Env = typeof ENV;

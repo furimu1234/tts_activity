@@ -132,7 +132,7 @@ client.on(Events.MessageCreate, async (message) => {
 
 	if (parsed.error) return;
 
-	fetch('http://localhost:8787/api/transform-message', {
+	fetch(`https://${ENV.DOMAIN}/api/transform-message`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
