@@ -9,17 +9,16 @@ import { websocket } from './websocket';
 // .envファイルを読み込む
 dotenv.config({ path: '../../.env' });
 
-// const hostFilter: MiddlewareHandler = async (c, next) => {
-// 	const host = c.req.header('host') || '';
-// 	console.log(host);
-// 	if (!['localhost:8787'].includes(host)) {
-// 		return c.text('Forbidden', 403);
-// 	}
-// 	await next();
-// };
+const hostFilter: MiddlewareHandler = async (c, next) => {
+	const host = c.req.header('host') || '';
+	if (![process.env.DOMAIN].includes(host)) {
+		return c.text('Forbidden', 403);
+	}
+	await next();
+};
 
 const app = new Hono();
-// app.use('*', hostFilter);
+app.use('*', hostFilter);
 const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({ app });
 
 app.route('/', api);
@@ -70,7 +69,7 @@ app.get('/', (c) => {
 });
 
 app.get(
-	'/api/ws',
+	'/ws',
 	upgradeWebSocket((c) => ({
 		onOpen: (event, ws) => {
 			const clientId: UUID = randomUUID();
