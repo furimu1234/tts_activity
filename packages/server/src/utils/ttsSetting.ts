@@ -1,6 +1,8 @@
 export async function registerMembers(
 	channelId: string,
 ): Promise<string | undefined> {
+	console.log("BOTDOMAIN: ", process.env.DOMAIN)
+
 	const response = await fetch(
 		`http://${process.env.DOMAIN}/botapi/register_members?channelId=${channelId}`,
 		{
