@@ -22,7 +22,7 @@ const app = new Hono();
 // app.use('*', hostFilter);
 const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({ app });
 
-app.route('/api', api);
+app.route('/', api);
 
 app.post('/api/token', async (c) => {
 	// リクエストボディの取得
