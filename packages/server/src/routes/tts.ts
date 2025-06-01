@@ -71,6 +71,9 @@ app.post(
 			.filter((x) => !!x);
 
 		const channelId = body.channel_id;
+
+		console.log(body)
+
 		for (const clientId in websocket.clients) {
 			if (websocket.clients[clientId].channelId !== channelId) continue;
 			const client = websocket.clients[clientId].client;
