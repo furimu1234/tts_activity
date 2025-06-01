@@ -77,6 +77,8 @@ export async function getVoiceByte({
 		dictionaries.userDictionaries,
 	);
 
+	console.log("replacedText: ", replacedText)
+
 	const readParams: Record<string, string | number> = {
 		text: replacedText,
 		speaker,
@@ -101,7 +103,8 @@ export async function getVoiceByte({
 		form.append(key, value.toString());
 	}
 
-	try {
+	console.log("readParam: ", readParams)
+
 		const response = await fetch(baseUrl, {
 			method: 'POST',
 			headers: {
@@ -110,6 +113,8 @@ export async function getVoiceByte({
 			},
 			body: form.toString(),
 		});
+
+
 
 		if (!response.ok) {
 			const contentType = response.headers.get('content-type');
@@ -125,10 +130,7 @@ export async function getVoiceByte({
 		const byteArray = new Uint8Array(arrayBuffer);
 
 		return { byteArray, replacedText };
-	} catch (error) {
-		console.error('Failed to create voice byte:', error);
-		return {} as voiceByteInterface;
-	}
+	
 }
 
 export const zodenumFromObjKeys = <K extends string>(
