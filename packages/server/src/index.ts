@@ -69,7 +69,7 @@ app.get('/', (c) => {
 });
 
 app.get(
-	'/api/ws',
+	'/ws',
 	upgradeWebSocket((c) => ({
 		onOpen: (event, ws) => {
 			const clientId: UUID = randomUUID();
