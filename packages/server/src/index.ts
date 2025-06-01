@@ -1,10 +1,8 @@
-import { type UUID, randomUUID } from 'node:crypto';
 import { serve } from '@hono/node-server';
 import { createNodeWebSocket } from '@hono/node-ws';
 import * as dotenv from 'dotenv';
 import { Hono, type MiddlewareHandler } from 'hono';
 import api from './routes/api';
-import { websocket } from './websocket';
 
 // .envファイルを読み込む
 dotenv.config({ path: '../../.env' });
@@ -19,7 +17,7 @@ const hostFilter: MiddlewareHandler = async (c, next) => {
 
 const app = new Hono();
 app.use('*', hostFilter);
-const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({ app });
+export const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({ app });
 
 app.route('/', api);
 
@@ -68,24 +66,6 @@ app.get('/', (c) => {
 	return c.text('Hello Hono!');
 });
 
-app.get(
-	'/api/ws',
-	upgradeWebSocket((c) => ({
-		onOpen: (event, ws) => {
-			const clientId: UUID = randomUUID();
-			websocket.clients[clientId] = { client: ws, channelId: '' };
-			ws.send(JSON.stringify({ isSetClientId: true, clientId: clientId }));
-		},
-		onMessage: (event, ws) => {
-			const data = JSON.parse(event.data.toString());
-			const client = websocket.clients[data.clientId].client;
-			websocket.clients[data.clientId] = {
-				channelId: data.channelId,
-				client: client,
-			};
-		},
-	})),
-);
 
 app.notFound((c) => {
 	const path = c.req.url; // リクエストされたパスを取得

@@ -3,6 +3,7 @@ import { logger } from 'hono/logger';
 import Dictionaries from './dictionary';
 import Token from './getToken';
 import Tts from './tts';
+import Websocket from './websocket'
 
 const app = new Hono();
 app.use('*', logger());
@@ -10,5 +11,6 @@ app.use('*', logger());
 app.route('/', Tts);
 app.route('/', Token);
 app.route('/', Dictionaries);
+app.route('/', Websocket);
 
 export default app;
