@@ -22,9 +22,6 @@ const hostFilter: MiddlewareHandler = async (c, next) => {
 	const host = c.req.header('host') || '';
 	console.log(JSON.stringify(c.req))
 
-	if (![DOMAIN].includes(host)) {
-		return c.text('Forbidden', 403);
-	}
 	await next();
 };
 
