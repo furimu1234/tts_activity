@@ -12,6 +12,7 @@ export default defineConfig(({ mode }) => {
 		server: {
 			port: Number.parseInt(env.WEBAPP_SERVE_PORT),
 			allowedHosts: true,
+			host: "0.0.0.0",
 			proxy: {
 				'/api': {
 					target: 'http://localhost:8787',
