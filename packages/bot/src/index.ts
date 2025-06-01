@@ -39,7 +39,7 @@ client.on(Events.Error, async (error) => {
 	console.error(error);
 });
 
-app.get('/botapi/check', async (c) => {
+app.get('/check', async (c) => {
 	const { channelId } = c.req.query();
 
 	const channel = client.channels.cache.get(channelId);
