@@ -51,6 +51,7 @@ app.post(
 				VOICE_TEXT_WEB_API,
 				BASE_URL,
 			);
+			console.log("voiceData: ", voiceData)
 
 			if (!voiceData) {
 				throw new Error('voiceBinaryが見つかりませんでした');
