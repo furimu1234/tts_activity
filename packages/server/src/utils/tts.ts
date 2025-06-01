@@ -27,6 +27,7 @@ export async function makeVoiceBinFromMessage(
 		console.log("parentSetting: ", parentSetting)
 
 		if (data.author_id === x) {
+			console.log("メインユーザー: ", x)
 			const voiceData = await getVoiceByte({
 				db,
 				apiKey: apiKey,

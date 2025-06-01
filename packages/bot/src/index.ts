@@ -62,6 +62,25 @@ app.get('/check', async (c) => {
 		});
 	}
 
+	const store = dataStoreContainer.getDataStore();
+
+	await store.do(async (db) => {
+		await Promise.all(
+			channelMembers.map(async (x) => {
+				const userInfo = await getUserInfo(db, x.id);
+				console.log("getUserInfo: ", x.displayName)
+
+				if (!userInfo) {
+					console.warn("createUserInfo: ", x.displayName)
+					await createUserInfo(db, x.id, x.displayAvatarURL(), x.displayName);
+				}
+			}),
+		);
+	})
+
+	
+
+
 	return c.json({ message: 'OK' }, 200);
 });
 
