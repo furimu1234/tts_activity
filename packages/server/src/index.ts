@@ -5,28 +5,21 @@ import * as dotenv from 'dotenv';
 import { Hono, type MiddlewareHandler } from 'hono';
 import api from './routes/api';
 import { websocket } from './websocket';
-import { env } from 'hono/adapter';
-import { Env } from './types';
 
 // .envファイルを読み込む
 dotenv.config({ path: '../../.env' });
 
+// const hostFilter: MiddlewareHandler = async (c, next) => {
+// 	const host = c.req.header('host') || '';
+// 	console.log(host);
+// 	if (!['localhost:8787'].includes(host)) {
+// 		return c.text('Forbidden', 403);
+// 	}
+// 	await next();
+// };
 
-const app = new Hono<{
-	Bindings: Env;
-}>();
-
-const hostFilter: MiddlewareHandler = async (c, next) => {
-	const { DOMAIN } = env(c);
-
-	const host = c.req.header('host') || '';
-	console.log(JSON.stringify(c.req))
-
-	await next();
-};
-
-app.use('*', hostFilter);
-
+const app = new Hono();
+// app.use('*', hostFilter);
 const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({ app });
 
 app.route('/api', api);
