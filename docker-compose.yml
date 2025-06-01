@@ -22,8 +22,8 @@ services:
       - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/templates/nginx.conf.template:ro
-      - ./cert/server.crt:/etc/nginx/certs/server.crt
-      - ./cert/server.key:/etc/nginx/certs/server.key
+      - ./cert-copy/server.crt:/etc/nginx/certs/server.crt:ro
+      - ./cert-copy/server.key:/etc/nginx/certs/server.key:ro
     networks:
       - activity
 
