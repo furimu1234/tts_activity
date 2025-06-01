@@ -5,6 +5,7 @@ export interface IGetOAuthToken {
 export type Env = {
 	VOICE_TEXT_WEB_API: string;
 	BASE_URL: string;
+	DOMAIN: string
 };
 
 export interface MessageType {
