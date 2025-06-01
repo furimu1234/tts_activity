@@ -20,14 +20,16 @@ const hostFilter: MiddlewareHandler = async (c, next) => {
 	const { DOMAIN } = env(c);
 
 	const host = c.req.header('host') || '';
+	console.log(JSON.stringify(c.req))
+
 	if (![DOMAIN].includes(host)) {
 		return c.text('Forbidden', 403);
 	}
 	await next();
 };
 
-
 app.use('*', hostFilter);
+
 const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({ app });
 
 app.route('/api', api);
