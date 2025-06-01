@@ -42,8 +42,10 @@ app.post(
 		const { VOICE_TEXT_WEB_API, BASE_URL } = env(c);
 
 		const body = await c.req.valid('json');
+		console.log("store body: ",  body)
 
 		const store = dataStoreContainer.getDataStore(c);
+		console.log("store")
 		const voiceDatas = await store.do(async (db) => {
 			const voiceData = await makeVoiceBinFromMessage(
 				db,
@@ -73,7 +75,7 @@ app.post(
 
 		const channelId = body.channel_id;
 
-		console.log(body)
+		console.log("body: ",body)
 
 		for (const clientId in websocket.clients) {
 			if (websocket.clients[clientId].channelId !== channelId) continue;
