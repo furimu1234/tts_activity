@@ -70,8 +70,8 @@ export async function createSubVoiceSetting(
 		const { id, ...rest } = voiceData;
 
 		values = {
-			...rest,
 			...values,
+			...rest,
 			parentId: parentUserId,
 		};
 	}
