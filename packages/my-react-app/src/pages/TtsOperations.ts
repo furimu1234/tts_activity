@@ -64,7 +64,9 @@ export const useTtsOperation = (isPlay: boolean) => {
 			socketRef.current = socket;
 
 			socket.addEventListener('message', async (ev) => {
+				console.log(JSON.stringify(ev))
 				const data: WebScoketData = JSON.parse(ev.data);
+				console.log(data)
 
 				if (data.isSetClientId && socket) {
 					socket.send(
