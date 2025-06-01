@@ -2,7 +2,7 @@ export async function registerMembers(
 	channelId: string,
 ): Promise<string | undefined> {
 	const response = await fetch(
-		`http://localhost:9000/register_members?channelId=${channelId}`,
+		`http://${process.env.DOMAIN}/botapi/register_members?channelId=${channelId}`,
 		{
 			headers: {
 				'Content-Type': 'application/json',
