@@ -15,13 +15,13 @@ export default defineConfig(({ mode }) => {
 			host: "0.0.0.0",
 			proxy: {
 				'/api': {
-					target: 'http://localhost:8787/api',
+					target: 'http://localhost:8787',
 					changeOrigin: true,
 					secure: false,
 					ws: true,
 				},
 				'/botapi': {
-					target: 'http://localhost:9000/botapi',
+					target: 'http://localhost:9000',
 					changeOrigin: true,
 					secure: false,
 					ws: false,
