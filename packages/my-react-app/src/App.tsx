@@ -22,6 +22,15 @@ import TtsSetting from './pages/TtsSetting';
 import { DialogProvider } from './providers';
 import { ApiProvider } from './providers/APIProviders';
 
+process.on('uncaughtException', (err) => {
+	console.error('💥 uncaughtException:', err);
+	// プロセスを止めない
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+	console.error('💥 unhandledRejection:', reason);
+});
+
 export default function App(): React.ReactElement {
 	return (
 		<DialogProvider>
