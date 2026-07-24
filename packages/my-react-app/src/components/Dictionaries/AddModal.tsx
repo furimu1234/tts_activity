@@ -12,7 +12,6 @@ import {
 	type AddDictionaryRequestSchema,
 	addDictionaryBodySchema,
 } from '@tts/serverschema';
-import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { authStore } from '../../store/authStore';
 
@@ -39,12 +38,6 @@ interface AddModalProps {
 }
 const AddModal = ({ onAdd, onClose }: AddModalProps) => {
 	const auth = authStore();
-	const [item, setItem] = useState<AddDictionaryRequestSchema>({
-		createrId: auth.user.id,
-		afterWord: '',
-		beforeWord: '',
-		parentId: 'global',
-	});
 
 	const {
 		register,

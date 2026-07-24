@@ -68,18 +68,15 @@ app.get('/check', async (c) => {
 		await Promise.all(
 			channelMembers.map(async (x) => {
 				const userInfo = await getUserInfo(db, x.id);
-				console.log("getUserInfo: ", x.displayName)
+				console.log('getUserInfo: ', x.displayName);
 
 				if (!userInfo) {
-					console.warn("createUserInfo: ", x.displayName)
+					console.warn('createUserInfo: ', x.displayName);
 					await createUserInfo(db, x.id, x.displayAvatarURL(), x.displayName);
 				}
 			}),
 		);
-	})
-
-	
-
+	});
 
 	return c.json({ message: 'OK' }, 200);
 });

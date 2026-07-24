@@ -1,4 +1,4 @@
-import type { TtsSettingsViewSchema } from '@tts/serverschema';
+import type { TtsSettingsResponseSchema } from '@tts/serverschema';
 
-export type CardData = TtsSettingsViewSchema['mainData'];
+export type CardData = TtsSettingsResponseSchema['mainData'];
 export type TtsData = CardData['ttsData'];
