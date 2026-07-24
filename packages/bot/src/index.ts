@@ -39,6 +39,10 @@ client.on(Events.Error, async (error) => {
 	console.error(error);
 });
 
+client.on(Events.ClientReady, async () => {
+	console.log(client.user?.displayName, client.user?.id);
+});
+
 app.get('/check', async (c) => {
 	const { channelId } = c.req.query();
 
