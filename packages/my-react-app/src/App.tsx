@@ -22,13 +22,12 @@ import TtsSetting from './pages/TtsSetting';
 import { DialogProvider } from './providers';
 import { ApiProvider } from './providers/APIProviders';
 
-process.on('uncaughtException', (err) => {
-	console.error('💥 uncaughtException:', err);
-	// プロセスを止めない
+window.addEventListener('error', (event) => {
+	console.error('💥 uncaught error:', event.error ?? event.message);
 });
 
-process.on('unhandledRejection', (reason, promise) => {
-	console.error('💥 unhandledRejection:', reason);
+window.addEventListener('unhandledrejection', (event) => {
+	console.error('💥 unhandled rejection:', event.reason);
 });
 
 export default function App(): React.ReactElement {
